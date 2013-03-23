@@ -1,0 +1,57 @@
+﻿@{
+	Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Index</title>
+<style>
+body {
+	font: 10pt Verdana;
+}
+
+#status {
+	margin: 1.3em 0 .3em 0;
+}
+</style>
+</head>
+<body>
+
+<h1>JQuery.Retry</h1>
+
+Makes AJAX retries with jquery simple.
+
+<div id=status>&nbsp;</div>
+<div><button>Test</button></div>
+
+<script src="~/Scripts/jquery-1.9.1.js"></script>
+<script src="~/Scripts/json3.js"></script>
+<script src="~/Scripts/post.js"></script>
+<script src="~/Scripts/retry.js"></script>
+<script>
+$('button').click(function() {
+	var status = $('#status').text('Trying...');
+
+	var attempts = 0;
+
+	// Kick off the retries. This calls a fake flaky Controller that randomly waits and fails, occasionally succeeds.
+	retryPost('/home/test', null, 5, {
+		// validateResult is optional - normally any HTTP 200 is a success, but you can return false
+		// here after inspecting the returned data if it's invalid or the server returned some sort of
+		// message indicating something went wrong.
+		validateResult: function (r) {
+			return (r && r.message == "success");
+		}
+	}).done(function(r) {
+		status.text('Success!');
+	}).failWillRetry(function(a,b,c) {
+		attempts++;
+		status.text('Failed ' + attempts + ' times, trying again...');
+	}).fail(function(a,b,c) {
+		status.text('Total failure.');
+	});
+});
+</script>
+</body>
+</html>
